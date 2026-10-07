@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrevista de Investigación - Plataforma Unicórdoba</title>
+
+  <!-- Tailwind CSS & Fuentes Google -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Animación de ondas durante la grabación */
+    @keyframes wavePulse {
+      0%, 100% { height: 6px; }
+      50% { height: 18px; }
+    }
+    .wave-bar {
+      width: 3px;
+      background-color: #ef4444;
+      border-radius: 9999px;
+      animation: wavePulse 1.2s infinite ease-in-out;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.4s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.3s; }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+  <!-- ==========================================
+       CONFIGURACIÓN DE LA URL DEL BACKEND
+  =========================================== -->
+  <script>
+    // Coloca aquí la URL que copiaste al implementar tu Google Apps Script
+    const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzPnsqXYbbGXWMaijobgv_Sax1bdHmHqHS3g2XUBeSrdlriMCy54htUyqyHgWLTYt-4/exec";
+  </script>
+
+  <div>
+    <!-- Encabezado Principal -->
+    <header class="bg-gradient-to-r from-brand-900 via-brand-700 to-indigo-900 text-white shadow-xl sticky top-0 z-40">
+      <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15">
+            <i data-lucide="messages-square" class="w-6 h-6 text-brand-100"></i>
+          </div>
+          <div>
+            <h1 class="font-extrabold text-base sm:text-lg tracking-tight">Investigación de Comunicación Universitaria</h1>
+            <p class="text-xs text-brand-100/80">Guía de entrevista para estudiantes y líderes</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Progreso Global -->
+      <div class="bg-black/20 backdrop-blur-sm border-t border-white/10 px-4 py-2">
+        <div class="max-w-4xl mx-auto flex items-center justify-between text-xs font-medium text-brand-100 mb-1">
+          <span>Progreso de respuestas</span>
+          <span id="progress-text" class="font-bold text-white">0 / 11 respondidas</span>
+        </div>
+        <div class="max-w-4xl mx-auto h-2 bg-white/20 rounded-full overflow-hidden">
+          <div id="progress-bar" class="h-full bg-emerald-400 transition-all duration-300 w-0"></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 space-y-8">
+
+      <!-- Banner Informativo -->
+      <div class="bg-gradient-to-br from-indigo-50 to-brand-50 border border-brand-100 rounded-3xl p-6 shadow-sm flex items-start gap-4">
+        <div class="p-3 bg-brand-500 text-white rounded-2xl shrink-0 hidden sm:block">
+          <i data-lucide="sparkles" class="w-6 h-6"></i>
+        </div>
+        <div class="space-y-1.5 text-sm text-slate-700">
+          <h2 class="font-bold text-slate-900 text-base">¡Hola! Tu opinión es fundamental.</h2>
+          <p class="leading-relaxed">
+            Puedes responder cada pregunta **escribiendo tu respuesta** o **grabando un audio de voz** con el micrófono. Si prefieres, ¡puedes combinar ambos métodos!
+          </p>
+          <p class="text-xs text-slate-500 font-medium pt-1">
+            <i data-lucide="shield-check" class="w-4 h-4 inline text-emerald-600"></i> Tus respuestas se guardan automáticamente como borrador mientras completas el formulario.
+          </p>
+        </div>
+      </div>
+
+      <form id="interview-form" onsubmit="enviarEntrevista(event)" class="space-y-8">
+
+        <!-- BLOQUE 0: DATOS GENERALES -->
+        <section class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-6">
+          <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-black">0</span>
+              Datos Generales del Entrevistado
+            </h2>
+            <span class="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full border border-amber-200">Obligatorio</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Nombre completo *</label>
+              <input type="text" id="nombre" required oninput="guardarBorrador()" 
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition text-sm font-medium" 
+                placeholder="Ej. María Camila Gómez">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Programa académico *</label>
+              <input type="text" id="programa" required oninput="guardarBorrador()" 
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition text-sm font-medium" 
+                placeholder="Ej. Ing. de Sistemas / Lic. en Informática">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Semestre *</label>
+              <input type="text" id="semestre" required oninput="guardarBorrador()" 
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition text-sm font-medium" 
+                placeholder="Ej. 6° Semestre">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Rol universitario *</label>
+              <select id="rol" required onchange="guardarBorrador()" 
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-brand-500 outline-none transition text-sm font-medium">
+                <option value="Estudiante regular">Estudiante regular</option>
+                <option value="Líder de grupo">Líder de grupo</option>
+                <option value="Representante de estudiantes">Representante de estudiantes</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- PREGUNTAS DINÁMICAS -->
+        <div id="questions-container" class="space-y-8"></div>
+
+        <!-- BOTÓN DE ENVÍO Y REINICIO -->
+        <div class="pt-4 flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+          <button type="button" onclick="limpiarBorradorConConfirmacion()" 
+            class="text-slate-500 hover:text-red-600 text-xs font-bold flex items-center gap-2 px-4 py-2 rounded-xl hover:bg-red-50 transition">
+            <i data-lucide="trash" class="w-4 h-4"></i> Borrar Respuestas y Comenzar de Nuevo
+          </button>
+
+          <button type="submit" id="btn-submit" 
+            class="w-full sm:w-auto px-8 py-4 bg-brand-600 hover:bg-brand-700 active:scale-[0.98] text-white font-bold text-base rounded-2xl shadow-lg shadow-brand-500/25 flex items-center justify-center gap-3 transition">
+            <i data-lucide="send" class="w-5 h-5"></i> Enviar Entrevista
+          </button>
+        </div>
+
+      </form>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
+    <p>© 2026 Plataforma de Investigación de Comunicación - Universidad de Córdoba</p>
+  </footer>
+
+  <!-- MODAL DE CARGA Y ESTADO -->
+  <div id="status-modal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center space-y-6 shadow-2xl border border-slate-100">
+      
+      <!-- Spinner / Ícono -->
+      <div id="modal-icon-container" class="relative w-20 h-20 mx-auto flex items-center justify-center">
+        <div id="modal-spinner" class="absolute inset-0 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin"></div>
+        <i id="modal-icon" data-lucide="upload-cloud" class="w-8 h-8 text-brand-600 relative z-10"></i>
+      </div>
+
+      <div class="space-y-2">
+        <h3 id="modal-title" class="font-extrabold text-slate-900 text-xl">Enviando respuesta...</h3>
+        <p id="modal-desc" class="text-xs text-slate-500 leading-relaxed">
+          Procesando tus grabaciones e información. Por favor no cierres esta página.
+        </p>
+      </div>
+
+      <!-- Barra de progreso dentro del modal -->
+      <div id="modal-progress-box" class="space-y-1.5">
+        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div id="modal-progress-bar" class="h-full bg-brand-600 w-1/4 transition-all duration-300"></div>
+        </div>
+        <p id="modal-status-text" class="text-[11px] font-semibold text-slate-400">Iniciando transferencia...</p>
+      </div>
+
+      <button id="modal-btn" onclick="cerrarModalExito()" class="hidden w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl text-sm font-bold transition shadow-md">
+        Entendido / Finalizar
+      </button>
+    </div>
+  </div>
+
+  <!-- LÓGICA JAVASCRIPT -->
+  <script>
+    // Estructura de la Guía de Entrevista
+    const BLOQUES_PREGUNTAS = [
+      {
+        num: "1",
+        titulo: "Preguntas sobre el Problema",
+        items: [
+          { id: "p1", texto: "¿Qué medios utilizas actualmente para enterarte de eventos o novedades en la universidad?" },
+          { id: "p2", texto: "¿Con qué frecuencia sientes que te pierdes de información importante por no estar en el grupo o canal adecuado?" },
+          { id: "p3", texto: "¿Qué dificultades has tenido para comunicarte o colaborar con estudiantes de otros programas o semestres?" }
+        ]
+      },
+      {
+        num: "2",
+        titulo: "Preguntas sobre la Situación Actual",
+        items: [
+          { id: "p4", texto: "¿Qué ventajas y desventajas encuentras en los grupos de WhatsApp o redes sociales que usan hoy en día?" },
+          { id: "p5", texto: "¿Cómo organizan actualmente grupos de estudio o búsquedas de objetos perdidos en la universidad?" },
+          { id: "p6", texto: "¿Existe algún canal oficial o centralizado que use la comunidad estudiantil de forma activa?" }
+        ]
+      },
+      {
+        num: "3",
+        titulo: "Preguntas sobre Expectativas",
+        items: [
+          { id: "p7", texto: "¿Qué módulos o funciones te gustaría que tuviera una aplicación de comunicación universitaria (ej. foros, tutorías, eventos, marketplace académico)?" },
+          { id: "p8", texto: "¿Qué mecanismos de seguridad o validación sugerirías para garantizar que solo ingresen estudiantes de la universidad?" },
+          { id: "p9", texto: "¿Cómo te gustaría que se organizara la información para que sea fácil de consultar?" }
+        ]
+      },
+      {
+        num: "4",
+        titulo: "Preguntas de Cierre y Restricciones",
+        items: [
+          { id: "p10", texto: "¿Qué razones harían que no uses la plataforma cotidianamente?" },
+          { id: "p11", texto: "¿Qué normas o reglas de moderación consideras indispensables para mantener un ambiente de respeto en la plataforma?" }
+        ]
+      }
+    ];
+
+    // Variables globales para manejo de audio
+    const audioStates = {}; // qid -> { recorder, chunks, blob, base64, duration, timerInterval, seconds }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderizarPreguntas();
+      cargarBorrador();
+      actualizarProgresoGlobal();
+      lucide.createIcons();
+    });
+
+    // Renderizar bloques y preguntas
+    function renderizarPreguntas() {
+      const container = document.getElementById('questions-container');
+      container.innerHTML = '';
+
+      BLOQUES_PREGUNTAS.forEach(bloque => {
+        const sec = document.createElement('section');
+        sec.className = "bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-6";
+
+        let html = `
+          <div class="border-b border-slate-100 pb-4">
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-black">${bloque.num}</span>
+              ${bloque.titulo}
+            </h2>
+          </div>
+          <div class="space-y-6">
+        `;
+
+        bloque.items.forEach(q => {
+          html += `
+            <div id="card-${q.id}" class="p-5 rounded-2xl bg-slate-50/70 border border-slate-200/70 space-y-4 transition">
+              <div class="flex items-start justify-between gap-3">
+                <p class="font-bold text-slate-800 text-sm leading-snug">${q.texto}</p>
+                <span id="badge-${q.id}" class="shrink-0 text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-slate-200 text-slate-600">
+                  Pendiente
+                </span>
+              </div>
+
+              <!-- Panel de Grabación de Audio -->
+              <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <button type="button" id="btn-mic-${q.id}" onclick="toggleGrabacion('${q.id}')" 
+                    class="px-3.5 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs flex items-center gap-2 transition active:scale-95">
+                    <i data-lucide="mic" class="w-4 h-4"></i>
+                    <span id="label-mic-${q.id}">Grabar Audio</span>
+                  </button>
+
+                  <!-- Indicador de Grabando -->
+                  <div id="recording-status-${q.id}" class="hidden flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-xl border border-red-200">
+                    <div class="flex items-center gap-1 h-4">
+                      <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                    </div>
+                    <span id="timer-${q.id}" class="font-mono text-xs font-bold text-red-600">00:00</span>
+                  </div>
+                </div>
+
+                <!-- Reproductor del audio grabado -->
+                <div id="player-box-${q.id}" class="hidden flex items-center gap-2 w-full sm:w-auto">
+                  <audio id="audio-${q.id}" controls class="h-8 max-w-[220px] rounded-lg"></audio>
+                  <button type="button" onclick="eliminarAudio('${q.id}')" title="Eliminar este audio" 
+                    class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Entrada de Texto -->
+              <textarea id="txt-${q.id}" rows="2" oninput="alCambiarRespuesta('${q.id}')"
+                class="w-full p-3.5 bg-white border border-slate-200/90 rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none transition placeholder:text-slate-400"
+                placeholder="Escribe un resumen o notas de la respuesta aquí..."></textarea>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+        sec.innerHTML = html;
+        container.appendChild(sec);
+      });
+    }
+
+    // Lógica de Grabación usando Web Audio API
+    async function toggleGrabacion(qid) {
+      if (!audioStates[qid]) {
+        audioStates[qid] = { chunks: [], recording: false, seconds: 0 };
+      }
+
+      const btn = document.getElementById(`btn-mic-${qid}`);
+      const label = document.getElementById(`label-mic-${qid}`);
+      const statusBox = document.getElementById(`recording-status-${qid}`);
+
+      if (!audioStates[qid].recording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const recorder = new MediaRecorder(stream);
+          audioStates[qid].recorder = recorder;
+          audioStates[qid].chunks = [];
+
+          recorder.ondataavailable = e => audioStates[qid].chunks.push(e.data);
+          
+          recorder.onstop = async () => {
+            const blob = new Blob(audioStates[qid].chunks, { type: 'audio/webm' });
+            audioStates[qid].blob = blob;
+            audioStates[qid].base64 = await blobToBase64(blob);
+
+            const player = document.getElementById(`audio-${qid}`);
+            player.src = URL.createObjectURL(blob);
+            document.getElementById(`player-box-${qid}`).classList.remove('hidden');
+            alCambiarRespuesta(qid);
+          };
+
+          recorder.start();
+          audioStates[qid].recording = true;
+
+          // Iniciar Cronómetro
+          audioStates[qid].seconds = 0;
+          statusBox.classList.remove('hidden');
+          audioStates[qid].timerInterval = setInterval(() => {
+            audioStates[qid].seconds++;
+            const m = String(Math.floor(audioStates[qid].seconds / 60)).padStart(2, '0');
+            const s = String(audioStates[qid].seconds % 60).padStart(2, '0');
+            document.getElementById(`timer-${qid}`).innerText = `${m}:${s}`;
+          }, 1000);
+
+          btn.classList.replace('bg-red-50', 'bg-red-600');
+          btn.classList.replace('text-red-600', 'text-white');
+          label.innerText = 'Detener';
+
+        } catch (err) {
+          alert('No se pudo acceder al micrófono. Verifica los permisos de tu navegador.');
+        }
+      } else {
+        // Detener Grabación
+        audioStates[qid].recorder.stop();
+        audioStates[qid].recording = false;
+        clearInterval(audioStates[qid].timerInterval);
+        statusBox.classList.add('hidden');
+
+        btn.classList.replace('bg-red-600', 'bg-red-50');
+        btn.classList.replace('text-white', 'text-red-600');
+        label.innerText = 'Re-grabar Audio';
+      }
+    }
+
+    function eliminarAudio(qid) {
+      if (audioStates[qid]) {
+        delete audioStates[qid];
+        document.getElementById(`player-box-${qid}`).classList.add('hidden');
+        document.getElementById(`audio-${qid}`).src = '';
+        document.getElementById(`label-mic-${qid}`).innerText = 'Grabar Audio';
+        alCambiarRespuesta(qid);
+      }
+    }
+
+    function blobToBase64(blob) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    // Actualización del estado de respuesta y guardado automático
+    function alCambiarRespuesta(qid) {
+      const txt = document.getElementById(`txt-${qid}`).value.trim();
+      const tieneAudio = audioStates[qid] && audioStates[qid].blob;
+      const badge = document.getElementById(`badge-${qid}`);
+      const card = document.getElementById(`card-${qid}`);
+
+      if (txt || tieneAudio) {
+        badge.className = "shrink-0 text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200";
+        badge.innerText = "Respondida ✓";
+        card.classList.add('bg-white', 'ring-1', 'ring-emerald-200');
+        card.classList.remove('bg-slate-50/70');
+      } else {
+        badge.className = "shrink-0 text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-slate-200 text-slate-600";
+        badge.innerText = "Pendiente";
+        card.classList.remove('bg-white', 'ring-1', 'ring-emerald-200');
+        card.classList.add('bg-slate-50/70');
+      }
+
+      actualizarProgresoGlobal();
+      guardarBorrador();
+    }
+
+    function actualizarProgresoGlobal() {
+      let total = 0;
+      let respondidas = 0;
+
+      BLOQUES_PREGUNTAS.forEach(b => {
+        b.items.forEach(q => {
+          total++;
+          const txt = document.getElementById(`txt-${q.id}`)?.value.trim();
+          const tieneAudio = audioStates[q.id] && audioStates[q.id].blob;
+          if (txt || tieneAudio) respondidas++;
+        });
+      });
+
+      const pct = Math.round((respondidas / total) * 100);
+      document.getElementById('progress-text').innerText = `${respondidas} / ${total} respondidas (${pct}%)`;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+    }
+
+    // Autoguardado local (Borrador)
+    function guardarBorrador() {
+      const draft = {
+        nombre: document.getElementById('nombre').value,
+        programa: document.getElementById('programa').value,
+        semestre: document.getElementById('semestre').value,
+        rol: document.getElementById('rol').value,
+        textos: {}
+      };
+
+      BLOQUES_PREGUNTAS.forEach(b => {
+        b.items.forEach(q => {
+          const val = document.getElementById(`txt-${q.id}`)?.value;
+          if (val) draft.textos[q.id] = val;
+        });
+      });
+
+      localStorage.setItem('unicordoba_borrador', JSON.stringify(draft));
+    }
+
+    function cargarBorrador() {
+      const saved = localStorage.getItem('unicordoba_borrador');
+      if (!saved) return;
+
+      try {
+        const draft = JSON.parse(saved);
+        if (draft.nombre) document.getElementById('nombre').value = draft.nombre;
+        if (draft.programa) document.getElementById('programa').value = draft.programa;
+        if (draft.semestre) document.getElementById('semestre').value = draft.semestre;
+        if (draft.rol) document.getElementById('rol').value = draft.rol;
+
+        if (draft.textos) {
+          Object.keys(draft.textos).forEach(qid => {
+            const el = document.getElementById(`txt-${qid}`);
+            if (el) {
+              el.value = draft.textos[qid];
+              alCambiarRespuesta(qid);
+            }
+          });
+        }
+      } catch (e) {}
+    }
+
+    function limpiarBorradorConConfirmacion() {
+      if (confirm('¿Estás seguro de reiniciar el formulario? Se borrarán todos los datos ingresados.')) {
+        localStorage.removeItem('unicordoba_borrador');
+        location.reload();
+      }
+    }
+
+    // Proceso de Envío a Google Apps Script
+    async function enviarEntrevista(e) {
+      e.preventDefault();
+
+      if (!WEBHOOK_URL || WEBHOOK_URL.includes("PEGA_AQUI")) {
+        alert("Por favor configura primero la URL de Google Apps Script en el archivo index.html.");
+        return;
+      }
+
+      abrirModalCarga();
+
+      const payload = {
+        nombre: document.getElementById('nombre').value.trim(),
+        programa: document.getElementById('programa').value.trim(),
+        semestre: document.getElementById('semestre').value.trim(),
+        rol: document.getElementById('rol').value,
+        respuestas: []
+      };
+
+      let itemIndex = 0;
+      const totalItems = 11;
+
+      for (const b of BLOQUES_PREGUNTAS) {
+        for (const q of b.items) {
+          itemIndex++;
+          actualizarModalProgreso(
+            Math.round((itemIndex / totalItems) * 80), 
+            `Procesando respuesta ${itemIndex} de ${totalItems}...`
+          );
+
+          const txt = document.getElementById(`txt-${q.id}`).value.trim();
+          const audioBase64 = audioStates[q.id]?.base64 || null;
+
+          payload.respuestas.push({
+            id: q.id,
+            pregunta: q.texto,
+            respuestaTexto: txt,
+            audioBase64: audioBase64
+          });
+        }
+      }
+
+      actualizarModalProgreso(90, "Enviando paquete de datos a Google Drive...");
+
+      try {
+        await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        // Borrar borrador local al tener éxito
+        localStorage.removeItem('unicordoba_borrador');
+        mostrarModalExito();
+      } catch (err) {
+        mostrarModalError(err.toString());
+      }
+    }
+
+    // Control del Modal de Estado
+    function abrirModalCarga() {
+      document.getElementById('status-modal').classList.remove('hidden');
+      document.getElementById('modal-spinner').classList.remove('hidden');
+      document.getElementById('modal-progress-box').classList.remove('hidden');
+      document.getElementById('modal-btn').classList.add('hidden');
+      
+      const icon = document.getElementById('modal-icon');
+      icon.setAttribute('data-lucide', 'upload-cloud');
+      icon.className = 'w-8 h-8 text-brand-600 relative z-10';
+      lucide.createIcons();
+
+      document.getElementById('modal-title').innerText = "Enviando respuesta...";
+      document.getElementById('modal-desc').innerText = "Subiendo audios e información a Google Drive. Por favor espera unas milésimas de segundo.";
+    }
+
+    function actualizarModalProgreso(pct, statusText) {
+      document.getElementById('modal-progress-bar').style.width = `${pct}%`;
+      document.getElementById('modal-status-text').innerText = statusText;
+    }
+
+    function mostrarModalExito() {
+      document.getElementById('modal-spinner').classList.add('hidden');
+      document.getElementById('modal-progress-box').classList.add('hidden');
+      document.getElementById('modal-btn').classList.remove('hidden');
+
+      const icon = document.getElementById('modal-icon');
+      icon.setAttribute('data-lucide', 'check-circle-2');
+      icon.className = 'w-10 h-10 text-emerald-500 relative z-10';
+      lucide.createIcons();
+
+      document.getElementById('modal-title').innerText = "¡Entrevista Recibida!";
+      document.getElementById('modal-desc').innerText = "Muchas gracias por tu valioso aporte. Tu información y grabaciones han sido almacenadas exitosamente.";
+    }
+
+    function mostrarModalError(msg) {
+      document.getElementById('modal-spinner').classList.add('hidden');
+      document.getElementById('modal-progress-box').classList.add('hidden');
+      document.getElementById('modal-btn').classList.remove('hidden');
+
+      const icon = document.getElementById('modal-icon');
+      icon.setAttribute('data-lucide', 'alert-triangle');
+      icon.className = 'w-10 h-10 text-red-500 relative z-10';
+      lucide.createIcons();
+
+      document.getElementById('modal-title').innerText = "Atención";
+      document.getElementById('modal-desc').innerText = "Ocurrió un contratiempo al conectar con el servidor: " + msg;
+    }
+
+    function cerrarModalExito() {
+      document.getElementById('status-modal').classList.add('hidden');
+      location.reload();
+    }
+  </script>
+</body>
+</html>
